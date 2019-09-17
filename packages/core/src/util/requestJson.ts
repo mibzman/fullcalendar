@@ -1,54 +1,44 @@
+import { HTTP } from "@ionic-native/http/ngx";
 
-export default function requestJson(method: string, url: string, params: object, successCallback, failureCallback) {
-  method = method.toUpperCase()
+export default function requestJson(
+  method: string,
+  url: string,
+  params: object,
+  successCallback,
+  failureCallback
+) {
+  method = method.toUpperCase();
 
-  let body = null
+  // let body = null;
 
-  if (method === 'GET') {
-    url = injectQueryStringParams(url, params)
+  if (method === "GET") {
+    url = injectQueryStringParams(url, params);
   } else {
-    body = encodeParams(params)
+    // body = encodeParams(params);
   }
 
-  let xhr = new XMLHttpRequest()
-  xhr.open(method, url, true)
+  HTTP.get(url, {}, {})
+    .then(function(result) {
+      let res = JSON.parse(result);
+      successCallback(res, null);
+    })
+    .catch(() => {
+      failureCallback("Request failed", null);
+    });
 
-  if (method !== 'GET') {
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
-  }
-
-  xhr.onload = function() {
-    if (xhr.status >= 200 && xhr.status < 400) {
-      try {
-        let res = JSON.parse(xhr.responseText)
-        successCallback(res, xhr)
-      } catch (err) {
-        failureCallback('Failure parsing JSON', xhr)
-      }
-    } else {
-      failureCallback('Request failed', xhr)
-    }
-  }
-
-  xhr.onerror = function() {
-    failureCallback('Request failed', xhr)
-  }
-
-  xhr.send(body)
+  // xhr.send(body);
 }
 
 function injectQueryStringParams(url: string, params) {
-  return url +
-    (url.indexOf('?') === -1 ? '?' : '&') +
-    encodeParams(params)
+  return url + (url.indexOf("?") === -1 ? "?" : "&") + encodeParams(params);
 }
 
 function encodeParams(params) {
-  let parts = []
+  let parts = [];
 
   for (let key in params) {
-    parts.push(encodeURIComponent(key) + '=' + encodeURIComponent(params[key]))
+    parts.push(encodeURIComponent(key) + "=" + encodeURIComponent(params[key]));
   }
 
-  return parts.join('&')
+  return parts.join("&");
 }
